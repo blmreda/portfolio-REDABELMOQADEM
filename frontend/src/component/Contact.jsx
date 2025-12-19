@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import './contact.css';
+import './Contact.css';
 import { sendContact } from '../services/apiService'; // Assurez-vous que le chemin est correct
 
 const Contact = () => {

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getProjects } from '../services/apiService'; // Importez votre fonction API
-import './projects.css';
+import './Projects.css';
 
 const Projects = () => {
   const [projects, setProjects] = useState([]);
