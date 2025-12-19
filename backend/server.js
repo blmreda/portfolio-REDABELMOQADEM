@@ -1,121 +1,101 @@
 const express = require("express");
-const cors = require("cors");
-const dotenv = require("dotenv");
-const connectDB = require("./src/config/database");
 const path = require("path");
-const fs = require("fs");  // Ajoutez cette ligne
-
-dotenv.config();
+const fs = require("fs");
 
 const app = express();
 
-// DEBUG: Check paths
-console.log('=== DEBUG INFO ===');
-console.log('Current directory:', __dirname);
+// 1. Log de démarrage CRITIQUE
+console.log('🚀 SERVER STARTING - VERSION SIMPLIFIED');
+
+// 2. Vérifier les chemins
+console.log('📁 Current directory:', __dirname);
 const frontendDistPath = path.join(__dirname, '../frontend/dist');
-console.log('Frontend dist path:', frontendDistPath);
+console.log('🔍 Frontend dist path:', frontendDistPath);
 
-if (fs.existsSync(frontendDistPath)) {
-  console.log('✓ Frontend dist exists!');
-  console.log('Files in dist:', fs.readdirSync(frontendDistPath));
-} else {
-  console.log('✗ Frontend dist NOT found!');
-  console.log('Checking frontend directory...');
-  const frontendPath = path.join(__dirname, '../frontend');
-  if (fs.existsSync(frontendPath)) {
-    console.log('Frontend files:', fs.readdirSync(frontendPath));
-  }
-}
-
-// Configuration CORS
-app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? [process.env.FRONTEND_URL || 'https://portfolio-redabelmoqadem.vercel.app'] // 
-    : ['http://localhost:5173', 'http://localhost:3000', 'http://localhost:5174'],
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
-
+// 3. Middleware de base
 app.use(express.json());
 
-// Connexion à la base de données
-connectDB();
-
-// Serve static files - CORRIGEZ LE CHEMIN ICI
-if (process.env.NODE_ENV === 'production') {
-  // CORRECTION: Utilisez le bon chemin
-  const staticPath = frontendDistPath;
-  
-  if (fs.existsSync(staticPath)) {
-    console.log(`✅ Serving static files from: ${staticPath}`);
-    app.use(express.static(staticPath));
-  } else {
-    console.log(`❌ Static path not found: ${staticPath}`);
-  }
+// CORS simplifié (si le module est disponible)
+try {
+  const cors = require("cors");
+  app.use(cors());
+  console.log('✅ CORS enabled');
+} catch (error) {
+  console.log('⚠️ CORS module not available, continuing without it');
 }
 
-// Routes API
-app.use("/api/projects", require("./src/routes/projectRoutes"));
-app.use("/api/skills", require("./src/routes/skillRoutes"));
-app.use("/api/contacts", require("./src/routes/contactRoutes"));
+// 4. NE PAS appeler connectDB() - mongoose n'est pas installé
+console.log('⚠️ Skipping MongoDB connection (mongoose not installed)');
 
-// Route de test pour vérifier que l'API fonctionne
+// 5. NE PAS charger les routes qui n'existent pas
+console.log('⚠️ Skipping project/skill/contact routes (files may not exist)');
+// COMMENTEZ ces lignes pour l'instant :
+// app.use("/api/projects", require("./src/routes/projectRoutes"));
+// app.use("/api/skills", require("./src/routes/skillRoutes"));
+// app.use("/api/contacts", require("./src/routes/contactRoutes"));
+
+// 6. Route API de test (DOIT TOUJOURS FONCTIONNER)
 app.get('/api', (req, res) => {
+  console.log('📞 /api endpoint called');
   res.json({ 
-    message: '✅ API Portfolio fonctionne!',
-    environment: process.env.NODE_ENV || 'development',
+    status: 'success',
+    message: '✅ API Portfolio is working!',
     timestamp: new Date().toISOString(),
-    frontendPath: frontendDistPath,
-    frontendExists: fs.existsSync(frontendDistPath)
+    version: 'simplified-1.0'
   });
 });
 
-// Route de santé pour vérifier MongoDB
-app.get('/api/health', (req, res) => {
-  const mongoose = require('mongoose');
+app.get('/api/test', (req, res) => {
   res.json({ 
-    status: 'OK',
-    mongodb: mongoose.connection.readyState === 1 ? '✅ Connected' : '❌ Disconnected',
-    timestamp: new Date().toISOString()
+    test: true,
+    message: 'Test endpoint works perfectly!'
   });
 });
 
-// Handle React routing in production - CORRIGEZ LE CHEMIN ICI
-if (process.env.NODE_ENV === 'production') {
+// 7. Gestion du frontend
+if (fs.existsSync(frontendDistPath)) {
+  console.log('✅ Found frontend dist folder');
+  app.use(express.static(frontendDistPath));
+  
+  // Route pour le frontend React
   app.get('*', (req, res) => {
-    const indexPath = path.join(frontendDistPath, 'index.html');
-    if (fs.existsSync(indexPath)) {
-      res.sendFile(indexPath);
-    } else {
-      res.status(404).send(`
-        <h1>Frontend Not Found</h1>
-        <p>Expected index.html at: ${indexPath}</p>
-        <p>Check if Vite build completed successfully.</p>
-        <p><a href="/api">Test API</a></p>
-      `);
+    if (req.path.startsWith('/api')) {
+      return res.status(404).json({ error: 'API route not found' });
     }
+    res.sendFile(path.join(frontendDistPath, 'index.html'));
+  });
+} else {
+  console.log('❌ Frontend dist not found, showing backend page');
+  
+  // Page d'accueil simple
+  app.get('/', (req, res) => {
+    res.send(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Portfolio Backend</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 40px; text-align: center; }
+            .success { color: #4CAF50; font-size: 24px; }
+            .endpoints { background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px auto; max-width: 500px; }
+          </style>
+        </head>
+        <body>
+          <h1 class="success">✅ Backend Server is Running!</h1>
+          <p>Frontend will be available after build.</p>
+          <div class="endpoints">
+            <h3>Available API Endpoints:</h3>
+            <ul style="list-style: none; padding: 0;">
+              <li><a href="/api" target="_blank">/api</a> - Basic API test</li>
+              <li><a href="/api/test" target="_blank">/api/test</a> - Test endpoint</li>
+            </ul>
+          </div>
+        </body>
+      </html>
+    `);
   });
 }
 
-// Gestion des erreurs 404 pour les routes API
-app.use((req, res) => {
-  if (req.path.startsWith('/api')) {
-    res.status(404).json({ 
-      error: 'Route non trouvée',
-      path: req.path 
-    });
-  }
-});
-
-// IMPORTANT: Export pour Vercel (serverless)
+// 8. Export pour Vercel
+console.log('✅ Server configuration complete, ready to export');
 module.exports = app;
-
-// Serveur local uniquement (pas en production Vercel)
-if (process.env.NODE_ENV !== 'production') {
-  const PORT = process.env.PORT || 5002;
-  app.listen(PORT, () => {
-    console.log(`🚀 Serveur lancé sur http://localhost:${PORT}`);
-    console.log(`📡 API disponible sur http://localhost:${PORT}/api`);
-  });
-}
