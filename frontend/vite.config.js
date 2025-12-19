@@ -1,11 +1,12 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
+// https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: '/', // Important: mettre '/' et non './'
+  base: './', // Use relative paths for assets
   build: {
-    outDir: '..', 
+    outDir: 'dist', // Build to local dist folder
     emptyOutDir: true,
   },
   server: {
@@ -17,5 +18,8 @@ export default defineConfig({
         secure: false,
       }
     }
+  },
+  preview: {
+    port: 3000
   }
 })
