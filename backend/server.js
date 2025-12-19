@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const connectDB = require("./src/config/database");
+const path = require("path");
 
 dotenv.config();
 
@@ -10,7 +11,7 @@ const app = express();
 // Configuration CORS
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
-    ? [process.env.FRONTEND_URL || 'https://your-app-name.vercel.app'] // Will use env variable or default Vercel URL
+    ? [process.env.FRONTEND_URL || 'https://portfolio-reda-henna.vercel.app'] // Will use env variable or default Vercel URL
     : ['http://localhost:5173', 'http://localhost:3000', 'http://localhost:5174'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -21,6 +22,16 @@ app.use(express.json());
 
 // Connexion à la base de données
 connectDB();
+
+// Serve static files in production
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, 'dist')));
+  
+  // Handle React routing, return all requests to React app
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+  });
+}
 
 // Routes
 app.use("/api/projects", require("./src/routes/projectRoutes"));
@@ -48,10 +59,23 @@ app.get('/api/health', (req, res) => {
 
 // Gestion des erreurs 404
 app.use((req, res) => {
-  res.status(404).json({ 
-    error: 'Route non trouvée',
-    path: req.path 
-  });
+  // For API routes, return JSON error
+  if (req.path.startsWith('/api')) {
+    res.status(404).json({ 
+      error: 'Route non trouvée',
+      path: req.path 
+    });
+  } else {
+    // For non-API routes in production, serve the React app
+    if (process.env.NODE_ENV === 'production' && req.accepts('html')) {
+      res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+    } else {
+      res.status(404).json({ 
+        error: 'Route non trouvée',
+        path: req.path 
+      });
+    }
+  }
 });
 
 // IMPORTANT: Export pour Vercel (serverless)

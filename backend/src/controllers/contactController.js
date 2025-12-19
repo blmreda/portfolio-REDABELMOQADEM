@@ -28,12 +28,12 @@ exports.createContact = async (req, res) => {
 
     // Vérifiez que votre destinataire est correct
     // REMPLACEZ cette variable par VOTRE adresse email personnelle
-    const YOUR_PERSONAL_EMAIL = process.env.PERSONAL_EMAIL || "votre.email@personnel.com"; // ← À MODIFIER
+    const YOUR_PERSONAL_EMAIL = "votre.email@personnel.com"; // ← À MODIFIER
     const YOUR_SITE_NAME = "Portfolio Dev";
 
     // 1. Email au propriétaire (notification)
     const ownerMail = {
-      from: `"${YOUR_SITE_NAME}" <${process.env.EMAIL_USER || process.env.SMTP_USER}>`,
+      from: `"${YOUR_SITE_NAME}" <${process.env.SMTP_USER}>`,
       to: YOUR_PERSONAL_EMAIL, // Votre email personnel, pas celui du SMTP
       subject: `📩 Nouveau message de ${name}`,
       html: `
@@ -83,7 +83,7 @@ exports.createContact = async (req, res) => {
 
     // 2. Email de confirmation à l'expéditeur
     const confirmationMail = {
-      from: `"${YOUR_SITE_NAME}" <${process.env.EMAIL_USER || process.env.SMTP_USER}>`,
+      from: `"${YOUR_SITE_NAME}" <${process.env.SMTP_USER}>`,
       to: email, // Email du visiteur
       subject: "✅ Confirmation de réception - Votre message",
       html: `

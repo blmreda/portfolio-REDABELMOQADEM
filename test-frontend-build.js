@@ -1,21 +1,20 @@
-// Simple script to test the build process
+// Test script to verify frontend build
 const { exec } = require('child_process');
 const path = require('path');
 
-console.log('Testing build process...');
+console.log('Testing frontend build...');
 
 // Change to frontend directory and run build
 const frontendDir = path.join(__dirname, 'frontend');
-console.log(`Building frontend in ${frontendDir}...`);
 
 exec('npm run build', { cwd: frontendDir }, (error, stdout, stderr) => {
   if (error) {
-    console.error(`Build failed: ${error}`);
-    console.error(stderr);
+    console.error(`Build failed: ${error.message}`);
+    console.error(`stderr: ${stderr}`);
     return;
   }
   
-  console.log('Frontend build successful!');
+  console.log('Frontend build completed successfully!');
   console.log(stdout);
   
   // Check if dist folder exists
@@ -25,9 +24,17 @@ exec('npm run build', { cwd: frontendDir }, (error, stdout, stderr) => {
   if (fs.existsSync(distPath)) {
     console.log('✅ Dist folder created successfully');
     
-    // List files in dist folder
+    // Count files in dist folder
     const files = fs.readdirSync(distPath);
-    console.log('Files in dist folder:', files);
+    console.log(`📁 Found ${files.length} files in dist folder`);
+    
+    // Show some key files
+    const keyFiles = files.filter(file => 
+      file === 'index.html' || 
+      file.endsWith('.js') || 
+      file.endsWith('.css')
+    );
+    console.log('🔑 Key files:', keyFiles);
   } else {
     console.log('❌ Dist folder not found');
   }
