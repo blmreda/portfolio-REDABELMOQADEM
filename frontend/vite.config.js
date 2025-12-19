@@ -5,7 +5,7 @@ export default defineConfig({
   plugins: [react()],
   base: '/', // Important: mettre '/' et non './'
   build: {
-    outDir: 'dist', // Uniquement 'dist', pas de chemin relatif
+    outDir: '..', 
     emptyOutDir: true,
   },
   server: {
