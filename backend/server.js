@@ -11,7 +11,7 @@ const app = express();
 // Configuration CORS
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
-    ? [process.env.FRONTEND_URL || 'https://portfolio-reda-henna.vercel.app'] // Specific to your Vercel app
+    ? [process.env.FRONTEND_URL || 'https://portfolio-redabelmoqadem-58kl.vercel.app'] // Specific to your Vercel app
     : ['http://localhost:5173', 'http://localhost:3000', 'http://localhost:5174'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
